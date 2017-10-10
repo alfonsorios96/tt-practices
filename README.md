@@ -1,4 +1,4 @@
-# Guideline T.T. project v0.0.2
+# Guideline T.T. project v0.0.3
 
 This guideline is an agreement for developing.
 
@@ -56,12 +56,96 @@ Use the follow table to learn the comments allow.
 * The code is build and minify
 * Only the master branch is productive
 
-## Built With
+## Unit test
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+We are using TDD (Test Driven Development) and try to implement SOLID principles.
 
+### SOLID
+
+References: [SOLID for Java](http://blog.gauffin.org/2012/05/solid-principles-with-real-world-examples/)
+
+#### Single Responsibility Principle
+
+Example: [SRP Example for Java](http://blog.gauffin.org/2011/07/single-responsibility-prinicple/)
+
+Single responsibility states that every class should only have one reason to change. A typical example is an user management class. When you for instance create a new user you’ll most likely send an welcome email. That’s two reasons to change: To do something with the account management and to change the emailing procedure. A better way would be to generate some kind of event from the account management class which is subscribed by a UserEmailService that does the actual email handling.
+
+#### Open/Closed principle
+
+Open/Closed principle says that a class should be open for extension but closed for modification. Which means that you can add new features through inheritance but should not change the existing classes (other than bug fixes).
+
+#### Liskovs Substitution Principle
+
+Liskovs Substitution Principle states that any method that takes class X as a parameter must be able to work with any subclasses of X.
+
+#### Interface Segregation Principle
+
+ISP states that interfaces that have become “fat” (like god classes) should be split into several interfaces. Large interfaces makes it harder to extend smaller parts of the system.
+
+#### Dependency Inversion Principle
+
+The principle which is easiest to understand. DIP states that you should let the caller create the dependencies instead of letting the class itself create the dependencies. Hence inverting the dependency control (from letting the class control them to letting the caller control them).
+
+
+### Test Driven Development
+
+References: [TDD for Java](https://technologyconversations.com/2013/12/24/test-driven-development-tdd-best-practices-using-java-examples-2/)
+
+1. Write the test
+```java
+@Test
+public final void whenSemicolonDelimiterIsSpecifiedThenItIsUsedToSeparateNumbers() {
+    Assert.assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    Assert.assertEquals(0, StringCalculator.add(""));
+    Assert.assertEquals(3, StringCalculator.add("3"));
+    Assert.assertEquals(3+6, StringCalculator.add("3,6"));
+    Assert.assertEquals(3+6+15+18+46+33, StringCalculator.add("3,6,15,18,46,33"));
+    Assert.assertEquals(3+6+15, StringCalculator.add("3,6n15"));
+    Assert.assertEquals(3+6+15, StringCalculator.add("//;n3;6;15"));
+    Assert.assertEquals(3+1000+6, StringCalculator.add("3,1000,1001,6,1234"));
+}
+```
+2. Run the test (there is no implementation code, test does not pass)
+3. Write just enough implementation code to make the test pass
+```java
+public class StringCalculator {
+
+    public static int add(final String numbers) {
+        String delimiter = ",|\n";
+        String numbersWithoutDelimiter = numbers;
+        if (numbers.startsWith("//")) {
+            int delimiterIndex = numbers.indexOf("//") + 2;
+            delimiter = numbers.substring(delimiterIndex, delimiterIndex + 1);
+            numbersWithoutDelimiter = numbers.substring(numbers.indexOf("\n") + 1);
+        }
+        return add(numbersWithoutDelimiter, delimiter);
+    }
+
+    private static int add(final String numbers, final String delimiter) {
+        int returnValue = 0;
+        String[] numbersArray = numbers.split(delimiter);
+        List<Integer> negativeNumbers = new ArrayList<Integer>();
+        for (String number : numbersArray) {
+            if (!number.trim().isEmpty()) {
+                int numberInt = Integer.parseInt(number.trim());
+                if (numberInt < 0) {
+                    negativeNumbers.add(numberInt);
+                } else if (numberInt <= 1000) {
+                    returnValue += numberInt;
+                }
+            }
+        }
+        if (negativeNumbers.size() > 0) {
+            throw new RuntimeException("Negatives not allowed: " + negativeNumbers.toString());
+        }
+        return returnValue;
+    }
+
+}
+```
+4. Run all tests (tests pass)
+5. Refactor
+6. Repeat
 
 ## Versioning
 
@@ -94,6 +178,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
+* The goal in a project is the quality. This is my mission.
